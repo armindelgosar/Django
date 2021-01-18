@@ -1,0 +1,7 @@
+"D:\Python Projects\venv\Scripts\python.exe" "D:/Python Projects/main.py"
+nothing!
+This class's responsibility is maintaining system's advertise's data!
+This class's responsibility is maintaining system's advertiser's data!
+name1 0
+new name 0
+This class saves each Advertiser's id, name, clicks and views!
