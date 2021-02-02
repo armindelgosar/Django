@@ -16,6 +16,14 @@ class Advertiser(BaseAdvertising):
     def __str__(self):
         return str(self.id)
 
+    def inc_views(self):
+        self.views += 1
+        self.save()
+
+    def inc_clicks(self):
+        self.clicks += 1
+        self.save()
+
     @staticmethod
     def getChoiceList():
         list1 = []
@@ -39,3 +47,24 @@ class Ad(BaseAdvertising):
 
     def __str__(self):
         return str(self.id)
+
+    @classmethod
+    def create(cls, title, link, image, advertiser):
+        ad = cls(title=title, link=link, image=image, advertiser=advertiser)
+        ad.save()
+        return ad
+
+    @staticmethod
+    def inc_all_views():
+        for ad in Ad.objects.all():
+            ad.inc_views()
+
+    def inc_views(self):
+        self.views += 1
+        self.save()
+        self.advertiser.inc_views()
+
+    def inc_clicks(self):
+        self.clicks += 1
+        self.save()
+        self.advertiser.inc_clicks()
