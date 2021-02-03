@@ -1,12 +1,15 @@
 from django.urls import path
 from . import views
+from django.shortcuts import get_object_or_404
+from django.views.generic.base import RedirectView
+from .models import Ad
 
 app_name = "advertiser_management"
 urlpatterns = [
-    path('', views.index, name='index'),
+    path('', views.index, name='advertiser_management'),
     path('ads', views.show_message, name='show_message'),
-    path('make_ad', views.make_ad, name='create_ad'),
+    path('create_ad', views.create_ad, name='create_ad'),
     path('<int:pk>/',
          views.AdRedirectView.as_view()
-         , name='ad-redirect'),
+    , name='ad-redirect'),
 ]
