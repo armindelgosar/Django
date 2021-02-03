@@ -10,6 +10,10 @@ class BaseAdvertising(models.Model):
         abstract = True
 
 
+class Click(models.Model):
+    Ad_id = models.CharField(max_length=100)
+
+
 class Advertiser(BaseAdvertising):
     name = models.CharField(max_length=20)
     id = models.AutoField(primary_key=True)
