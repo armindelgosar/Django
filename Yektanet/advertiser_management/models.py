@@ -1,17 +1,13 @@
 from django.db import models
+from django.utils import timezone
 
 
-# Create your models here.
 class BaseAdvertising(models.Model):
     clicks = models.IntegerField(default=0)
     views = models.IntegerField(default=0)
 
     class Meta:
         abstract = True
-
-
-class Click(models.Model):
-    Ad_id = models.CharField(max_length=100)
 
 
 class Advertiser(BaseAdvertising):
@@ -73,3 +69,15 @@ class Ad(BaseAdvertising):
         self.clicks += 1
         self.save()
         self.advertiser.inc_clicks()
+
+
+class Click(models.Model):
+    ip = models.TextField(max_length=100, null=False)
+    ad = models.ForeignKey(Ad, on_delete=models.CASCADE)
+    date = models.DateTimeField(default=timezone.now())
+
+
+class View(models.Model):
+    ip = models.TextField(max_length=100, null=False)
+    ad = models.ForeignKey(Ad, on_delete=models.CASCADE)
+    date = models.DateTimeField(default=timezone.now())
