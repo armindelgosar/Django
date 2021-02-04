@@ -53,3 +53,12 @@ def show_message(request):
         "advertisers": advertisers,
     }
     return render(request, "advertiser_management/ads.html", context)
+
+
+def get_client_ip(request):
+    ip = request.META.get('HTTP_X_FORWARDED_FOR')
+    if ip:
+        ip = ip.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
