@@ -39,16 +39,23 @@ class Advertiser(BaseAdvertising):
                 return advertiser
 
 
-class Ad(BaseAdvertising):
-    APPROVE_CHOICES = (('a', 'approved'),
-                       ('d', 'Disapproved'),
-                       ('n', 'Not checked'))
+class Ad(models.Model):
+    APPROVE_CHOICES = (
+        ('a', 'APPROVED'),
+        ('d', 'Disapproved'),
+        ('n', 'Not checked')
+    )
     id = models.AutoField(primary_key=True)
     title = models.CharField(max_length=20)
     link = models.CharField(max_length=100)
     image = models.ImageField(upload_to="images", default="")
     advertiser = models.ForeignKey(Advertiser, on_delete=models.CASCADE)
-    approve_condition = models.CharField(max_length=1, choices=APPROVE_CHOICES, default='n')
+    approve = models.CharField(max_length=1, choices=APPROVE_CHOICES, default='n')
+
+    @property
+    def views(self):
+        views = len(View.objects.filter(ad_id=self.id))
+        return views
 
     def __str__(self):
         return str(self.id)
@@ -60,28 +67,31 @@ class Ad(BaseAdvertising):
         return ad
 
     @staticmethod
-    def inc_all_views():
+    def inc_all_views(ip):
         for ad in Ad.objects.all():
-            ad.inc_views()
+            if ad.approve == 'a':
+                ad.inc_views(ip)
 
-    def inc_views(self):
-        self.views += 1
-        self.save()
-        self.advertiser.inc_views()
+    def inc_views(self, ip):
+        if not View.objects.filter(ad_id=self.id, ip=ip):
+            view = View.objects.create(ip=ip, ad=self)
+            self.advertiser.inc_views()
+            view.save()
 
-    def inc_clicks(self):
-        self.clicks += 1
-        self.save()
-        self.advertiser.inc_clicks()
-
-
-class Click(models.Model):
-    ip = models.TextField(max_length=100, null=False)
-    ad = models.ForeignKey(Ad, on_delete=models.CASCADE)
-    date = models.DateTimeField(default=timezone.now())
+    def inc_clicks(self, ip):
+        if not Click.objects.filter(ad_id=self.id, ip=ip):
+            click = Click.objects.create(ip=ip, ad=self)
+            self.advertiser.inc_clicks()
+            click.save()
 
 
 class View(models.Model):
-    ip = models.TextField(max_length=100, null=False)
     ad = models.ForeignKey(Ad, on_delete=models.CASCADE)
-    date = models.DateTimeField(default=timezone.now())
+    ip = models.TextField(null=False)
+    date = models.DateTimeField(default=timezone.now)
+
+
+class Click(models.Model):
+    ad = models.ForeignKey(Ad, on_delete=models.CASCADE)
+    ip = models.TextField(null=False)
+    date = models.DateTimeField(default=timezone.now)
