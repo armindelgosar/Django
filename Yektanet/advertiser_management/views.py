@@ -1,27 +1,46 @@
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 from django.views.generic.base import RedirectView, TemplateView
-from rest_framework import generics
+from rest_framework import generics, authentication
 from rest_framework import permissions
+from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
+from rest_framework import viewsets
 from .forms import CreateAd
 from .serializers import *
 
 
-class AdDetailedList(generics.ListAPIView):
-    permission_classes = [permissions.IsAdminUser]
+class AdDetailedList(viewsets.ModelViewSet):
+    permission_classes = [IsAdminUser]
     queryset = Ad.objects.all()
-    serializer_class = AdDetailedSerializer
+    serializer = AdSerializer(queryset, many=True)
+
+    def list(self, request, **kwargs):
+        queryset = Ad.objects.all()
+        serializer = AdSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None, **kwargs):
+        queryset = Ad.objects.all()
+        ad = get_object_or_404(queryset, pk=pk)
+        serializer = AdSerializer(ad)
+        return Response(serializer.data)
 
 
 class AdList(generics.ListAPIView):
     queryset = Ad.objects.all()
     serializer_class = AdSerializer
+    permissions = [IsAdminUser]
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = AdSerializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class ShowAds(APIView):
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
@@ -30,14 +49,12 @@ class ShowAds(APIView):
         return Response(serializer.data)
 
 
-class AdCreate(APIView):
+class AdCreate(generics.ListCreateAPIView):
+    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
-    def post(self, request):
-        serializer = AdSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-        return Response(serializer.data)
+    queryset = Ad.objects.all()
+    serializer_class = AdSerializer
 
 
 class AdvertiserManagement(TemplateView):
@@ -45,11 +62,13 @@ class AdvertiserManagement(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = {
-            "welcome": "THis is my first project in Yektanet!", }
+            "welcome": "This is my first project in Yektanet!", }
         return context
 
 
 class CreateAdView(View):
+    authentication_classes = [authentication.TokenAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
     form_class = CreateAd
     initial = {'key': 'value'}
     template_name = 'advertiser_management/make_ad.html'
@@ -72,6 +91,8 @@ class CreateAdView(View):
 
 
 class AdRedirectView(RedirectView):
+    authentication_classes = [authentication.TokenAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
     pattern_name = 'ad-redirect'
     query_string = False
     ad = ""

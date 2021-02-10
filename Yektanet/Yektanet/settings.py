@@ -44,7 +44,6 @@ REST_FRAMEWORK = {
                                    'rest_framework.permissions.IsAuthenticated')
 }
 
-
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -108,6 +107,8 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
+
+REST_USE_JWT = True
 
 TIME_ZONE = 'UTC'
 
