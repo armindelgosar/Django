@@ -1,5 +1,8 @@
 from django.db import models
 from django.utils import timezone
+from rest_framework.authtoken.models import Token
+from django.contrib.auth.models import User
+from rest_framework.authtoken.models import Token
 
 
 class BaseAdvertising(models.Model):
@@ -95,3 +98,6 @@ class Click(models.Model):
     ad = models.ForeignKey(Ad, on_delete=models.CASCADE)
     ip = models.TextField(null=False)
     date = models.DateTimeField(default=timezone.now)
+
+
+
