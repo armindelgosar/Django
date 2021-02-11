@@ -1,3 +1,4 @@
+import self as self
 from django import forms
 
 from .models import Advertiser
@@ -11,5 +12,4 @@ class CreateAd(forms.Form):
     link = forms.URLField(label='URL')
 
     def is_valid(self):
-
         return super().is_valid() or True

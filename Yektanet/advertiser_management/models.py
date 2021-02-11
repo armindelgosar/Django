@@ -30,9 +30,7 @@ class Advertiser(BaseAdvertising):
 
     @staticmethod
     def getChoiceList():
-        list1 = []
-        for advertiser in Advertiser.objects.all():
-            list1.append((advertiser.id, advertiser.name + " id: " + str(advertiser.id)))
+        list1 = list((Advertiser.id, "{} id: {}".format(Advertiser.name , str(Advertiser.id))))
         return list1
 
     @staticmethod
@@ -98,6 +96,3 @@ class Click(models.Model):
     ad = models.ForeignKey(Ad, on_delete=models.CASCADE)
     ip = models.TextField(null=False)
     date = models.DateTimeField(default=timezone.now)
-
-
-

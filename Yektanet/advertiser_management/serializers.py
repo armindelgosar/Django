@@ -7,7 +7,7 @@ from datetime import datetime
 class AdSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ad
-        fields = '__all__'
+        fields = ['id', 'title', 'link', 'image', 'advertiser', 'approve']
 
 
 class AdDetailedSerializer(serializers.ModelSerializer):
@@ -18,7 +18,7 @@ class AdDetailedSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Ad
-        fields = '__all__'
+        fields = ['id', 'title', 'link', 'image', 'serializer', 'advertiser', 'approve']
 
     def get_clicks_per_hour(self, instance):
         clicks_per_hour = self.get_click_per_hour(instance)
@@ -92,7 +92,7 @@ class AdvertiserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Advertiser
-        fields = '__all__'
+        fields = ['id', 'name', 'views', 'clicks']
 
     def get_ads(self, instance):
         return AdSerializer(Ad.objects.filter(advertiser_id=instance.id), many=True).data
@@ -101,10 +101,10 @@ class AdvertiserSerializer(serializers.ModelSerializer):
 class ViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = View
-        fields = '__all__'
+        fields = ['ad', 'ip', 'date']
 
 
 class ClickSerializer(serializers.ModelSerializer):
     class Meta:
         model = Click
-        fields = '__all__'
+        fields = ['ad', 'ip', 'date']

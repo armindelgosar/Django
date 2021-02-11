@@ -16,17 +16,6 @@ class AdDetailedList(viewsets.ModelViewSet):
     queryset = Ad.objects.all()
     serializer = AdSerializer(queryset, many=True)
 
-    def list(self, request, **kwargs):
-        queryset = Ad.objects.all()
-        serializer = AdSerializer(queryset, many=True)
-        return Response(serializer.data)
-
-    def retrieve(self, request, pk=None, **kwargs):
-        queryset = Ad.objects.all()
-        ad = get_object_or_404(queryset, pk=pk)
-        serializer = AdSerializer(ad)
-        return Response(serializer.data)
-
 
 class AdList(generics.ListAPIView):
     queryset = Ad.objects.all()
