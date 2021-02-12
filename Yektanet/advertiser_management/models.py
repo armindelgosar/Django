@@ -8,6 +8,10 @@ from rest_framework.authtoken.models import Token
 class BaseAdvertising(models.Model):
     clicks = models.IntegerField(default=0)
     views = models.IntegerField(default=0)
+    hourly_clicks = models.IntegerField(default=0)
+    hourly_views = models.IntegerField(default=0)
+    daily_clicks = models.IntegerField(default=0)
+    daily_views = models.IntegerField(default=0)
 
     class Meta:
         abstract = True
@@ -22,15 +26,17 @@ class Advertiser(BaseAdvertising):
 
     def inc_views(self):
         self.views += 1
+        self.daily_views += 1
         self.save()
 
     def inc_clicks(self):
         self.clicks += 1
+        self.daily_clicks += 1
         self.save()
 
     @staticmethod
     def getChoiceList():
-        list1 = list((Advertiser.id, "{} id: {}".format(Advertiser.name , str(Advertiser.id))))
+        list1 = list((Advertiser.id, "{} id: {}".format(Advertiser.name, str(Advertiser.id))))
         return list1
 
     @staticmethod
@@ -40,7 +46,7 @@ class Advertiser(BaseAdvertising):
                 return advertiser
 
 
-class Ad(models.Model):
+class Ad(BaseAdvertising):
     APPROVE_CHOICES = (
         ('a', 'APPROVED'),
         ('d', 'Disapproved'),
@@ -58,6 +64,11 @@ class Ad(models.Model):
         views = len(View.objects.filter(ad_id=self.id))
         return views
 
+    @property
+    def clicks(self):
+        clicks = len(Click.objects.filter(ad_id=self.id))
+        return clicks
+
     def __str__(self):
         return str(self.id)
 
@@ -72,6 +83,18 @@ class Ad(models.Model):
         for ad in Ad.objects.all():
             if ad.approve == 'a':
                 ad.inc_views(ip)
+
+    def make_daily_views_zero(self):
+        self.daily_views = 0
+
+    def make_daily_clicks_zero(self):
+        self.daily_views = 0
+
+    def make_hourly_views_zero(self):
+        self.hourly_views = 0
+
+    def make_hourly_clicks_zero(self):
+        self.hourly_clicks = 0
 
     def inc_views(self, ip):
         if not View.objects.filter(ad_id=self.id, ip=ip):

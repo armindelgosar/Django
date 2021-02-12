@@ -35,7 +35,12 @@ INSTALLED_APPS = [
     'advertiser_management',
     'rest_framework',
     'rest_framework.authtoken',
+    'django_celery_beat',
+    'django_celery_results',
 ]
+
+CELERY_RESULT_BACKEND = 'django-db'
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',

@@ -23,7 +23,7 @@ class AdDetailedSerializer(serializers.ModelSerializer):
     def get_clicks_per_hour(self, instance):
         clicks_per_hour = self.get_click_per_hour(instance)
         clicks_per_hour = list(
-            str(i) + " - " + str(i + 1) + ": " + str(x) for i, x in enumerate(clicks_per_hour))
+            "{} - {}: {}".format(i, (i + 1), x) for i, x in enumerate(clicks_per_hour, start=0))
         return clicks_per_hour
 
     def get_click_per_hour(self, instance):
@@ -43,7 +43,7 @@ class AdDetailedSerializer(serializers.ModelSerializer):
     def get_views_per_hour(self, instance):
         views_per_hour = self.get_view_per_hour(instance)
         views_per_hour = list(
-            str(i) + " - " + str(i + 1) + ": " + str(x) for i, x in enumerate(views_per_hour))
+            "{} - {}: {}".format(i, (i + 1), x) for i, x in enumerate(views_per_hour, start=0))
         return views_per_hour
 
     def get_view_per_hour(self, instance):
