@@ -14,11 +14,15 @@ app.conf.beat_schedule = {
         'schedule': crontab(hour='*/1'),
     },
     'every-1-hour-views': {
-        'task': 'advertiser_management.tasks.count_total_views_per_day',
-        'schedule': crontab(hour='*/24'),
+        'task': 'advertiser_management.tasks.count_total_views_per_hour',
+        'schedule': crontab(hour='*/1'),
     },
     'every-1-day-clicks': {
         'task': 'advertiser_management.tasks.count_total_clicks_per_day',
+        'schedule': crontab(hour='*/24'),
+    },
+    'every-1-day-views': {
+        'task': 'advertiser_management.tasks.count_total_views_per_day',
         'schedule': crontab(hour='*/24'),
     }
 }

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Ad, Advertiser, View, Click
+from .models import Ad, Advertiser, View, Click, ClicksPerHour
 from datetime import datetime
 
 
@@ -88,14 +88,18 @@ class AdDetailedSerializer(serializers.ModelSerializer):
 
 
 class AdvertiserSerializer(serializers.ModelSerializer):
-    ads = serializers.SerializerMethodField()
-
     class Meta:
         model = Advertiser
         fields = ['id', 'name', 'views', 'clicks']
 
     def get_ads(self, instance):
         return AdSerializer(Ad.objects.filter(advertiser_id=instance.id), many=True).data
+
+
+class HClickSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClicksPerHour
+        fields = ['ad_title', 'start_time', 'end_time', 'content']
 
 
 class ViewSerializer(serializers.ModelSerializer):

@@ -32,9 +32,8 @@ class ShowAds(APIView):
     authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
-    def get(self, request, *args, **kwargs):
-        Ad.inc_all_views(request.ip)
-        serializer = AdvertiserSerializer(Advertiser.objects.all(), many=True)
+    def get(self, request):
+        serializer = HClickSerializer(ClicksPerHour.objects.all(), many=True)
         return Response(serializer.data)
 
 

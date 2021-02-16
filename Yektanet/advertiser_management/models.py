@@ -56,7 +56,7 @@ class Ad(BaseAdvertising):
     title = models.CharField(max_length=20)
     link = models.CharField(max_length=100)
     image = models.ImageField(upload_to="images", default="")
-    advertiser = models.ForeignKey(Advertiser, on_delete=models.CASCADE)
+    advertiser = models.ForeignKey(Advertiser, on_delete=models.CASCADE, related_name='ads')
     approve = models.CharField(max_length=1, choices=APPROVE_CHOICES, default='n')
 
     @property
@@ -84,29 +84,83 @@ class Ad(BaseAdvertising):
             if ad.approve == 'a':
                 ad.inc_views(ip)
 
-    def make_daily_views_zero(self):
+    @staticmethod
+    def make_daily_views(self):
+        view_per_day = ViewsPerDay.objects.create(ad=self, end_time=timezone.now(),
+                                                  start_time=timezone.datetime.now() - timezone.timedelta(days=1),
+                                                  content=self.daily_views)
         self.daily_views = 0
+        view_per_day.save()
 
-    def make_daily_clicks_zero(self):
-        self.daily_views = 0
+    @staticmethod
+    def make_daily_clicks(self):
+        click_per_day = ClicksPerDay.objects.create(ad=self, end_time=timezone.now(),
+                                                    start_time=timezone.datetime.now() - timezone.timedelta(days=1),
+                                                    content=self.daily_clicks)
+        self.daily_clicks = 0
+        click_per_day.save()
 
-    def make_hourly_views_zero(self):
+    @staticmethod
+    def make_hourly_views(self):
+        view_per_hour = ViewsPerHour.objects.create(ad=self, end_time=timezone.now(),
+                                                    start_time=timezone.datetime.now() - timezone.timedelta(hours=1),
+                                                    content=self.hourly_views)
+        self.daily_views += self.hourly_views
         self.hourly_views = 0
+        view_per_hour.save()
 
-    def make_hourly_clicks_zero(self):
+    @staticmethod
+    def make_hourly_clicks(self):
+        click_per_hour = ClicksPerHour.objects.create(ad=self, end_time=timezone.now(),
+                                                      start_time=timezone.datetime.now() - timezone.timedelta(hours=1),
+                                                      content=self.hourly_clicks)
+        self.daily_clicks += self.hourly_clicks
         self.hourly_clicks = 0
+        click_per_hour.save()
 
     def inc_views(self, ip):
         if not View.objects.filter(ad_id=self.id, ip=ip):
             view = View.objects.create(ip=ip, ad=self)
+            self.hourly_views += 1
+            self.daily_views += 1
             self.advertiser.inc_views()
             view.save()
 
     def inc_clicks(self, ip):
         if not Click.objects.filter(ad_id=self.id, ip=ip):
             click = Click.objects.create(ip=ip, ad=self)
+            self.hourly_clicks += 1
+            self.daily_clicks += 1
             self.advertiser.inc_clicks()
             click.save()
+
+
+class ClicksPerHour(models.Model):
+    ad = models.ForeignKey(to=Ad, on_delete=models.CASCADE)
+    start_time = models.DateTimeField(default=timezone.now)
+    end_time = models.DateTimeField(default=timezone.now)
+    content = models.IntegerField(default=0)
+
+
+class ViewsPerHour(models.Model):
+    ad = models.ForeignKey(to=Ad, on_delete=models.CASCADE)
+    start_time = models.DateTimeField(default=timezone.now)
+    end_time = models.DateTimeField(default=timezone.now)
+    content = models.IntegerField(default=0)
+
+
+class ClicksPerDay(models.Model):
+    ad = models.ForeignKey(to=Ad, on_delete=models.CASCADE)
+    start_time = models.DateTimeField(default=timezone.now)
+    end_time = models.DateTimeField(default=timezone.now)
+    content = models.IntegerField(default=0)
+
+
+class ViewsPerDay(models.Model):
+    ad = models.ForeignKey(to=Ad, on_delete=models.CASCADE)
+    start_time = models.DateTimeField(default=timezone.now)
+    end_time = models.DateTimeField(default=timezone.now)
+    content = models.IntegerField(default=0)
 
 
 class View(models.Model):

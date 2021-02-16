@@ -1,4 +1,3 @@
-import self as self
 from django import forms
 
 from .models import Advertiser
