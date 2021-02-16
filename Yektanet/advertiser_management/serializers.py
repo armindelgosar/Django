@@ -7,7 +7,7 @@ from datetime import datetime
 class AdSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ad
-        fields = ['id', 'title', 'link', 'image', 'advertiser', 'approve']
+        fields = ['id', 'title', 'link', 'image', 'advertiser', 'approve', 'views', 'clicks']
 
 
 class AdDetailedSerializer(serializers.ModelSerializer):
@@ -99,7 +99,7 @@ class AdvertiserSerializer(serializers.ModelSerializer):
 class HClickSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClicksPerHour
-        fields = ['ad_title', 'start_time', 'end_time', 'content']
+        fields = ['ad', 'start_time', 'end_time', 'content']
 
 
 class ViewSerializer(serializers.ModelSerializer):

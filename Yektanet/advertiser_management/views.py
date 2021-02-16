@@ -14,7 +14,7 @@ from .serializers import *
 class AdDetailedList(viewsets.ModelViewSet):
     permission_classes = [IsAdminUser]
     queryset = Ad.objects.all()
-    serializer = AdSerializer(queryset, many=True)
+    serializer_class = AdSerializer
 
 
 class AdList(generics.ListAPIView):
@@ -37,14 +37,6 @@ class ShowAds(APIView):
         return Response(serializer.data)
 
 
-class AdCreate(generics.ListCreateAPIView):
-    authentication_classes = [authentication.TokenAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
-
-    queryset = Ad.objects.all()
-    serializer_class = AdSerializer
-
-
 class AdvertiserManagement(TemplateView):
     template_name = "advertiser_management/advertiser_management.html"
 
@@ -52,6 +44,15 @@ class AdvertiserManagement(TemplateView):
         context = {
             "welcome": "This is my first project in Yektanet!", }
         return context
+
+
+class ShowAdsAll(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        Ad.inc_all_views(request.ip)
+        serializer = AdSerializer(Ad.objects.all(), many=True)
+        return Response(serializer.data)
 
 
 class CreateAdView(View):
@@ -91,5 +92,6 @@ class AdRedirectView(RedirectView):
 
     def get(self, request, *args, **kwargs):
         self.ad = get_object_or_404(Ad, pk=kwargs['pk'])
+        self.ad.inc_views(request.ip)
         self.ad.inc_clicks(request.ip)
         return super().get(request, *args, **kwargs)

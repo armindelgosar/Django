@@ -8,10 +8,6 @@ from rest_framework.authtoken.models import Token
 class BaseAdvertising(models.Model):
     clicks = models.IntegerField(default=0)
     views = models.IntegerField(default=0)
-    hourly_clicks = models.IntegerField(default=0)
-    hourly_views = models.IntegerField(default=0)
-    daily_clicks = models.IntegerField(default=0)
-    daily_views = models.IntegerField(default=0)
 
     class Meta:
         abstract = True
@@ -26,12 +22,10 @@ class Advertiser(BaseAdvertising):
 
     def inc_views(self):
         self.views += 1
-        self.daily_views += 1
         self.save()
 
     def inc_clicks(self):
         self.clicks += 1
-        self.daily_clicks += 1
         self.save()
 
     @staticmethod
@@ -61,12 +55,12 @@ class Ad(BaseAdvertising):
 
     @property
     def views(self):
-        views = len(View.objects.filter(ad_id=self.id))
+        views = len(View.objects.filter(ad=self))
         return views
 
     @property
     def clicks(self):
-        clicks = len(Click.objects.filter(ad_id=self.id))
+        clicks = len(Click.objects.filter(ad=self))
         return clicks
 
     def __str__(self):
@@ -84,55 +78,74 @@ class Ad(BaseAdvertising):
             if ad.approve == 'a':
                 ad.inc_views(ip)
 
-    @staticmethod
-    def make_daily_views(self):
-        view_per_day = ViewsPerDay.objects.create(ad=self, end_time=timezone.now(),
-                                                  start_time=timezone.datetime.now() - timezone.timedelta(days=1),
-                                                  content=self.daily_views)
-        self.daily_views = 0
-        view_per_day.save()
+    def show_views(self):
+        views = View.objects.filter(ad=self)
+        for v in views:
+            print('{}  {}  {}'.format(v.ad, v.date, v.ip))
 
-    @staticmethod
+    def make_daily_views(self):
+        set1 = ViewsPerHour.objects.filter(ad=self, start_time__day=timezone.now().day - 1)
+        count = 0
+        for ob in set1:
+            count += ob.content
+        views_per_day = ViewsPerDay.objects.create(ad=self,
+                                                   start_time=timezone.now().replace(day=timezone.now().day - 1, hour=0,
+                                                                                     minute=0, second=0,
+                                                                                     microsecond=0),
+                                                   end_time=timezone.now().replace(day=timezone.now().day, hour=0,
+                                                                                   minute=0, second=0,
+                                                                                   microsecond=0),
+                                                   content=count)
+        views_per_day.save()
+
     def make_daily_clicks(self):
-        click_per_day = ClicksPerDay.objects.create(ad=self, end_time=timezone.now(),
-                                                    start_time=timezone.datetime.now() - timezone.timedelta(days=1),
-                                                    content=self.daily_clicks)
-        self.daily_clicks = 0
+        set1 = ClicksPerHour.objects.filter(ad=self, start_time__day=timezone.now().day - 1)
+        count = 0
+        for ob in set1:
+            count += ob.content
+        click_per_day = ClicksPerHour.objects.create(ad=self,
+                                                     start_time=timezone.now().replace(hour=timezone.now().hour - 1,
+                                                                                       minute=0, second=0,
+                                                                                       microsecond=0),
+                                                     end_time=timezone.now().replace(hour=timezone.now().hour,
+                                                                                     minute=0, second=0,
+                                                                                     microsecond=0),
+                                                     content=count)
         click_per_day.save()
 
-    @staticmethod
     def make_hourly_views(self):
-        view_per_hour = ViewsPerHour.objects.create(ad=self, end_time=timezone.now(),
-                                                    start_time=timezone.datetime.now() - timezone.timedelta(hours=1),
-                                                    content=self.hourly_views)
-        self.daily_views += self.hourly_views
-        self.hourly_views = 0
+        count = len(View.objects.filter(ad=self, date__hour=timezone.now().hour-1, date__date=timezone.now()))
+        view_per_hour = ViewsPerHour.objects.create(ad=self,
+                                                    start_time=timezone.now().replace(hour=timezone.now().hour - 1,
+                                                                                      minute=0, second=0,
+                                                                                      microsecond=0),
+                                                    end_time=timezone.now().replace(hour=timezone.now().hour,
+                                                                                    minute=0, second=0,
+                                                                                    microsecond=0),
+                                                    content=count)
         view_per_hour.save()
 
-    @staticmethod
     def make_hourly_clicks(self):
-        click_per_hour = ClicksPerHour.objects.create(ad=self, end_time=timezone.now(),
-                                                      start_time=timezone.datetime.now() - timezone.timedelta(hours=1),
-                                                      content=self.hourly_clicks)
-        self.daily_clicks += self.hourly_clicks
-        self.hourly_clicks = 0
+        count = len(Click.objects.filter(ad=self, date__hour=timezone.now().hour-1, date__date=timezone.now()))
+        click_per_hour = ClicksPerHour.objects.create(ad=self,
+                                                      start_time=timezone.now().replace(hour=timezone.now().hour - 1,
+                                                                                        minute=0, second=0,
+                                                                                        microsecond=0),
+                                                      end_time=timezone.now().replace(hour=timezone.now().hour,
+                                                                                      minute=0, second=0,
+                                                                                      microsecond=0),
+                                                      content=count)
         click_per_hour.save()
 
     def inc_views(self, ip):
-        if not View.objects.filter(ad_id=self.id, ip=ip):
-            view = View.objects.create(ip=ip, ad=self)
-            self.hourly_views += 1
-            self.daily_views += 1
-            self.advertiser.inc_views()
-            view.save()
+        view = View.objects.create(ip=ip, ad=self)
+        self.advertiser.inc_views()
+        view.save()
 
     def inc_clicks(self, ip):
-        if not Click.objects.filter(ad_id=self.id, ip=ip):
-            click = Click.objects.create(ip=ip, ad=self)
-            self.hourly_clicks += 1
-            self.daily_clicks += 1
-            self.advertiser.inc_clicks()
-            click.save()
+        click = Click.objects.create(ip=ip, ad=self)
+        self.advertiser.inc_clicks()
+        click.save()
 
 
 class ClicksPerHour(models.Model):
@@ -148,6 +161,12 @@ class ViewsPerHour(models.Model):
     end_time = models.DateTimeField(default=timezone.now)
     content = models.IntegerField(default=0)
 
+    # @staticmethod
+    # def show_detail(ad):
+    #     x = ViewsPerHour.objects.filter(ad=ad)
+    #     for a in x:
+    #         print('{} {} {} {}'.format(a.ad, a.start_time, a.end_time, a.content))
+
 
 class ClicksPerDay(models.Model):
     ad = models.ForeignKey(to=Ad, on_delete=models.CASCADE)
@@ -155,12 +174,24 @@ class ClicksPerDay(models.Model):
     end_time = models.DateTimeField(default=timezone.now)
     content = models.IntegerField(default=0)
 
+    # @staticmethod
+    # def show_detail(ad):
+    #     x = ClicksPerDay.objects.filter(ad=ad)
+    #     for a in x:
+    #         print('{} {} {} {}'.format(a.ad, a.start_time, a.end_time, a.content))
+
 
 class ViewsPerDay(models.Model):
     ad = models.ForeignKey(to=Ad, on_delete=models.CASCADE)
     start_time = models.DateTimeField(default=timezone.now)
     end_time = models.DateTimeField(default=timezone.now)
     content = models.IntegerField(default=0)
+
+    # @staticmethod
+    # def show_detail(ad):
+    #     x = ViewsPerDay.objects.filter(ad=ad)
+    #     for a in x:
+    #         print('{} {} {} {}'.format(a.ad, a.start_time, a.end_time, a.content))
 
 
 class View(models.Model):
