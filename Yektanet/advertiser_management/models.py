@@ -85,7 +85,8 @@ class Ad(BaseAdvertising):
     #         print('{}  {}  {}'.format(v.ad, v.date, v.ip))
 
     def make_daily_views(self):
-        set1 = ViewsPerHour.objects.filter(ad=self, start_time__date=(timezone.now()).date())
+        set1 = ViewsPerHour.objects.filter(ad=self,
+                                           start_time__date=(timezone.now() - timezone.timedelta(days=1)).date())
         count = 0
         for ob in set1:
             count += ob.content
@@ -99,7 +100,8 @@ class Ad(BaseAdvertising):
         views_per_day.save()
 
     def make_daily_clicks(self):
-        set1 = ClicksPerHour.objects.filter(ad=self, start_time__date=(timezone.now()).date())
+        set1 = ClicksPerHour.objects.filter(ad=self,
+                                            start_time__date=(timezone.now() - timezone.timedelta(days=1)).date())
         count = 0
         for ob in set1:
             count += ob.content
